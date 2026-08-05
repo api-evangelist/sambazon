@@ -1,0 +1,105 @@
+generated: '2026-08-05'
+method: probed
+source: >-
+  Observed on the wire at https://www.sambazon.com/api/ucp/mcp, plus the
+  published retry rule in https://www.sambazon.com/llms.txt. No OpenAPI is
+  published for this origin, so nothing here is derived from a spec.
+format: jsonrpc-2.0
+description: >-
+  SAMBAZON publishes no error reference. This catalog records only errors
+  actually observed against the store's public surface, plus the one error
+  condition its own agent instructions name (429). The MCP endpoint does not
+  use RFC 9457 application/problem+json — it returns a JSON-RPC 2.0 error
+  object with a nested, machine-readable data.code.
+envelope:
+  content_type: application/json; charset=utf-8
+  shape:
+    jsonrpc: '2.0'
+    id: <request id echoed back>
+    error:
+      code: <JSON-RPC integer code>
+      message: <human-readable summary>
+      data:
+        code: <machine-readable reason slug>
+        content: <human-readable detail>
+        continue_url: <URL a human can open to resolve>
+  fields:
+    - name: error.code
+      description: >-
+        JSON-RPC integer. Standard JSON-RPC codes (-32700 parse error, -32600
+        invalid request, -32601 method not found, -32602 invalid params, -32603
+        internal error) plus implementation-defined codes in the -32000..-32099
+        server-error range.
+    - name: error.data.code
+      description: The stable slug to branch on. This is the real error identifier.
+    - name: error.data.continue_url
+      description: >-
+        Where to send a human to unblock the agent. Present on the observed
+        error, pointing at the store's myshopify origin.
+problems:
+  - code: -32001
+    data_code: invalid_profile_url
+    title: UCP discovery failed
+    detail: 'Unable to fetch agent profile: Missing profile uri'
+    http_status: 422
+    surface: POST /api/ucp/mcp
+    observed: true
+    observed_on: '2026-08-05'
+    cause: >-
+      The calling agent did not present a resolvable UCP agent profile URI, so
+      the server could not complete UCP discovery for the caller.
+    remediation: >-
+      Register a UCP agent profile and present its URI on the request. The store
+      publishes no instructions for this; the Universal Commerce Protocol spec
+      at https://ucp.dev/2026-04-08/specification/overview/ is the reference.
+      Agents that only need catalog data can use the unauthenticated storefront
+      JSON endpoints instead.
+    reproduced_with:
+      - 'method: tools/list'
+      - 'method: initialize'
+      - 'origin: https://sambazon-us.myshopify.com/api/ucp/mcp (same error)'
+  - code: null
+    data_code: rate_limited
+    title: Too Many Requests
+    http_status: 429
+    surface: POST /api/ucp/mcp
+    observed: false
+    source: >-
+      Documented, not observed. llms.txt and agents.md state "The MCP endpoint
+      is rate-limited per IP. Back off on 429 responses." The pipeline does not
+      probe rate limits to exhaustion, so the response body and any Retry-After
+      header are uncaptured.
+    remediation: Exponential backoff, per-IP. See ../conventions/sambazon-conventions.yml.
+  - code: null
+    data_code: not_found
+    title: Not Found
+    http_status: 404
+    surface: storefront HTML and JSON paths
+    observed: true
+    observed_on: '2026-08-05'
+    detail: >-
+      Unknown storefront paths return the store's themed HTML 404 page
+      (text/html, ~79KB); unknown /.well-known/* paths return a smaller HTML 404
+      (~4.2KB); unknown .json paths return a 404 with an
+      application/json content-type and a zero-byte body. This origin does NOT
+      soft-404 with a 200, which is what makes the 200s recorded in
+      ../well-known/sambazon-well-known.yml trustworthy.
+not_documented:
+  - No error reference page exists on www.sambazon.com.
+  - No enumerated error-code registry, no decline codes (SAMBAZON is a merchant,
+    not a payment processor — card decline handling sits with the Google Pay and
+    Shopify card payment handlers named in the UCP profile).
+  - No RFC 9457 problem+json anywhere on this origin.
+x-evidence:
+  fetched: '2026-08-05'
+  probes:
+    - url: https://www.sambazon.com/api/ucp/mcp
+      method: POST
+      http_status: 422
+      content_type: application/json; charset=utf-8
+    - url: https://www.sambazon.com/definitely-not-a-real-path-xyz123.txt
+      http_status: 404
+      content_type: text/plain; charset=utf-8
+    - url: https://www.sambazon.com/openapi.json
+      http_status: 404
+      content_type: application/json; charset=utf-8

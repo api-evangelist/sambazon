@@ -1,0 +1,154 @@
+generated: '2026-08-05'
+method: probed
+source: >-
+  https://www.sambazon.com/llms.txt, https://www.sambazon.com/agents.md,
+  https://www.sambazon.com/robots.txt, https://www.sambazon.com/.well-known/ucp,
+  and live response headers observed on
+  https://www.sambazon.com/products.json and
+  https://www.sambazon.com/api/ucp/mcp
+description: >-
+  Cross-cutting runtime semantics of the SAMBAZON store's public surface. Two
+  distinct protocols live on one origin: a JSON-RPC 2.0 / MCP endpoint carrying
+  the Universal Commerce Protocol, and Shopify's read-only storefront JSON
+  endpoints. Their conventions differ and are recorded separately. Everything
+  below was either published by the store in its own agent instructions or
+  observed on the wire; nothing is inferred from an OpenAPI, because none is
+  published.
+auth:
+  style: >-
+    None for read-only browsing; a UCP agent-profile URI for the MCP endpoint;
+    Shopify customer-account OIDC (PKCE S256, bearer in the Authorization
+    header) for shopper-scoped access.
+  detail: ../authentication/sambazon-authentication.yml
+  scopes: ../scopes/sambazon-scopes.yml
+idempotency:
+  supported: unknown
+  header: none-documented
+  note: >-
+    No idempotency key, retry-safety guarantee, or replay window is documented
+    anywhere on this surface — not in agents.md, not in llms.txt, not in the
+    UCP merchant profile. The UCP shopping model is cart/checkout-object based
+    (create_cart returns a cart, create_checkout returns a checkout, and
+    subsequent calls address that object by id), which limits duplicate-charge
+    exposure structurally, but that is a property of the protocol design and
+    NOT a published idempotency guarantee. Recorded honestly as unknown; no
+    Idempotency pointer is wired in apis.yml.
+pagination:
+  mcp:
+    style: unknown
+    note: >-
+      The MCP tool input schemas are gated (see ../mcp/sambazon-mcp.yml), so the
+      cursor/limit convention for search_catalog could not be captured.
+  storefront_json:
+    style: page-and-limit query parameters
+    params:
+      - name: limit
+        in: query
+        note: Verified — /products.json?limit=1 returned exactly one product.
+      - name: page
+        in: query
+        note: Shopify storefront JSON convention; not documented by this store.
+    response_field: products
+versioning:
+  scheme: dated protocol versions
+  current: '2026-04-08'
+  supported:
+    - '2026-04-08'
+    - '2026-01-23'
+  negotiation: >-
+    /.well-known/ucp lists supported_versions as a map of version string to a
+    version-specific profile URL on the sambazon-us.myshopify.com origin. Some
+    capabilities declare requires.protocol.min, e.g.
+    dev.ucp.shopping.fulfillment and dev.shopify.catalog both require a minimum
+    protocol of 2026-04-08.
+  note: >-
+    The versions are the Universal Commerce Protocol's, not SAMBAZON's. The
+    store publishes no API version of its own and no changelog.
+  detail: ../lifecycle/sambazon-lifecycle.yml
+error_envelope:
+  mcp:
+    format: JSON-RPC 2.0 error object
+    shape: '{jsonrpc, id, error: {code, message, data: {code, content, continue_url}}}'
+    observed_example_code: -32001
+    note: >-
+      Not RFC 9457 problem+json. The nested data.code carries the machine-
+      readable reason (e.g. invalid_profile_url) and data.continue_url points
+      the caller at a human-resolvable next step.
+    detail: ../errors/sambazon-problem-types.yml
+  storefront:
+    format: HTML error pages
+    note: >-
+      Unknown storefront paths return the store's themed HTML 404 page, not a
+      JSON error. A nonsense .txt path returned a zero-byte 404 body.
+rate_limiting:
+  published_policy: >-
+    "Respect rate limits. The MCP endpoint is rate-limited per IP. Back off on
+    429 responses." (llms.txt / agents.md)
+  scope: per-IP
+  retry_signal: HTTP 429
+  observed_headers:
+    - name: shopify-complexity-score
+      note: >-
+        Observed on both surfaces — 22 on /products.json?limit=1 and 60 on a
+        POST to /api/ucp/mcp. A per-request cost score, the input to Shopify's
+        leaky-bucket accounting.
+    - name: shopify-complexity-score-v2
+      note: Second-generation cost score; same values observed.
+  not_observed:
+    - No RateLimit / RateLimit-Policy (RFC 9331 draft) headers.
+    - No X-RateLimit-Limit / Remaining / Reset headers.
+    - No Retry-After observed (no 429 was triggered — the pipeline does not
+      probe rate limits to exhaustion).
+request_tracing:
+  header: x-request-id
+  format: 'UUID + "-" + integer suffix, e.g. <uuid>-1785942928'
+  observed_on: [/products.json, /api/ucp/mcp]
+  additional:
+    - name: server-timing
+      note: >-
+        Carries requestID, plus processing/db durations, edge PoP, country and
+        the serving node — an unusually rich trace signal for a storefront.
+    - name: cf-ray
+      note: Cloudflare edge request identifier (Cloudflare fronts this origin).
+cors:
+  mcp_endpoint:
+    access_control_allow_origin: '*'
+    note: >-
+      The UCP/MCP endpoint is CORS-open, so a browser-based agent can call it
+      cross-origin. Observed on the 422 response.
+caching:
+  mcp: 'cache-control: no-cache, no-store'
+  storefront_json: 'cf-cache-status: DYNAMIC (not edge-cached)'
+security_headers:
+  strict_transport_security: max-age=7889238
+  x_frame_options: DENY
+  x_content_type_options: nosniff
+  content_security_policy: >-
+    block-all-mixed-content; frame-ancestors 'none'; upgrade-insecure-requests;
+  x_permitted_cross_domain_policies: none
+  detail: ../security/sambazon-domain-security.yml
+agent_policy:
+  human_in_the_loop_required: true
+  statement: >-
+    Checkout, payment and order placement must not be completed automatically.
+    Agents must obtain explicit, contemporaneous human approval, or route the
+    purchase through Shop Pay via the Shopify Shop skill. Stated identically in
+    robots.txt, agents.md and llms.txt.
+  recommended_context_fields:
+    - context.address_country
+    - context.currency
+  crawl_policy: >-
+    robots.txt allows crawling of public product, collection, page, blog,
+    policy, cart and localized HTML for all user agents.
+x-evidence:
+  fetched: '2026-08-05'
+  probes:
+    - url: https://www.sambazon.com/products.json?limit=1
+      http_status: 200
+    - url: https://www.sambazon.com/api/ucp/mcp
+      method: POST
+      http_status: 422
+    - url: https://www.sambazon.com/robots.txt
+      http_status: 200
+    - url: https://www.sambazon.com/llms.txt
+      http_status: 200

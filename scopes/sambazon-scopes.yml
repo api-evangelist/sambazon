@@ -1,0 +1,59 @@
+generated: '2026-08-05'
+method: probed
+source: https://www.sambazon.com/.well-known/openid-configuration
+docs: https://shopify.dev/docs/api/customer
+description: >-
+  OAuth 2.0 / OpenID Connect scopes advertised in the customer-account
+  authorization-server metadata that www.sambazon.com publishes. These are
+  Shopify platform scopes surfaced on the merchant origin — SAMBAZON does not
+  define its own scope vocabulary, and the UCP/MCP endpoint at /api/ucp/mcp is
+  not scope-gated (it is gated on an agent profile URI instead, see
+  ../authentication/sambazon-authentication.yml).
+issuer: https://shopify.com/authentication/52008485056
+flows:
+  authorization_code:
+    authorizationUrl: https://shopify.com/authentication/52008485056/oauth/authorize
+    tokenUrl: https://shopify.com/authentication/52008485056/oauth/token
+    pkce: S256
+    refresh: supported
+scopes:
+  - name: openid
+    description: >-
+      Standard OpenID Connect scope. Requests an ID token identifying the
+      signed-in shopper.
+    standard: OpenID Connect Core 1.0
+  - name: email
+    description: >-
+      Standard OpenID Connect scope. Releases the email and email_verified
+      claims for the signed-in shopper.
+    standard: OpenID Connect Core 1.0
+  - name: customer-account-api:full
+    description: >-
+      Full access to the Shopify Customer Account API on behalf of the
+      signed-in shopper — their orders, addresses, payment methods and profile
+      for this store.
+    standard: Shopify platform scope
+  - name: customer-account-mcp-api:full
+    description: >-
+      Full access to the Shopify Customer Account MCP API on behalf of the
+      signed-in shopper. This is the authenticated, customer-scoped counterpart
+      to the anonymous UCP/MCP commerce endpoint — it is how an agent acts on a
+      logged-in buyer's own account data rather than on the public catalog.
+    standard: Shopify platform scope
+coverage:
+  scopes_declared: 4
+  scopes_openid_standard: 2
+  scopes_platform: 2
+notes:
+  - >-
+    scopes_supported is the only scope surface published. There is no
+    per-operation scope mapping, because no OpenAPI is published for this
+    origin.
+  - >-
+    token_endpoint_auth_methods_supported is client_secret_basic only, and the
+    jwt-bearer grant is also offered — both Shopify platform behaviours.
+x-evidence:
+  fetched: '2026-08-05'
+  url: https://www.sambazon.com/.well-known/openid-configuration
+  http_status: 200
+  content_type: application/json; charset=utf-8

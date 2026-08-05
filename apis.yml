@@ -1,23 +1,137 @@
 aid: sambazon
 name: Sambazon
-description: 'Sambazon is a company surfaced via the API Evangelist harvest backlog (source: secondary-market)
-  and added to the network as a stub for full-pipeline profiling.'
+description: 'SAMBAZON (Sustainable Management of the Brazilian Amazon) is a San Clemente,
+  California organic açaí food and beverage company founded in 2000, selling frozen
+  açaí bowls, smoothie packs, bowl blends and juices through grocery, food service
+  and its own direct-to-consumer store in 45+ countries. It is not a software vendor
+  and publishes no developer program, but its Shopify-hosted storefront at www.sambazon.com
+  exposes a real, public, machine-readable agentic-commerce surface: an llms.txt and
+  agents.md agent instruction set, a Universal Commerce Protocol (UCP) merchant profile
+  at /.well-known/ucp, a UCP/MCP JSON-RPC endpoint at /api/ucp/mcp, Shopify customer-account
+  OpenID Connect metadata, and read-only storefront product/collection JSON endpoints.'
 url: https://raw.githubusercontent.com/api-evangelist/sambazon/refs/heads/main/apis.yml
+image: https://www.sambazon.com/cdn/shop/files/EnjoyTheDelicousPowersOfAcai_DefaultMetaImageV2.jpg?v=1738620841&width=1000
 x-type: company
 x-source: harvest:secondary-market
-x-tier: stub
-x-tier-reason: harvest
+x-tier: profiled
+x-tier-reason: enrichment
 specificationVersion: '0.20'
 created: '2026-08-05'
 modified: '2026-08-05'
 tags:
 - Company
-apis: []
+- Food and Beverage
+- Consumer Packaged Goods
+- Ecommerce
+- Agentic Commerce
+- Universal Commerce Protocol
+- Model Context Protocol
+- Shopify
+- Retail
+- Sustainability
+apis:
+- name: SAMBAZON Storefront Agentic Commerce (UCP/MCP)
+  description: 'The agent-facing commerce surface of the SAMBAZON online store. The
+    merchant profile at /.well-known/ucp advertises the Universal Commerce Protocol
+    (versions 2026-04-08 and 2026-01-23) over an MCP/JSON-RPC endpoint at /api/ucp/mcp,
+    covering catalog search and lookup, cart, checkout, fulfillment, discount and order
+    capabilities, plus Google Pay and Shopify card payment handlers. Anonymous tools/list
+    is refused with JSON-RPC error -32001 (invalid_profile_url) — the live tool schemas
+    require a registered UCP agent profile. Checkout completion requires contemporaneous
+    human buyer approval.'
+  humanURL: https://www.sambazon.com/agents.md
+  baseURL: https://www.sambazon.com/api/ucp/mcp
+  tags:
+  - Agentic Commerce
+  - Universal Commerce Protocol
+  - Model Context Protocol
+  - Ecommerce
+  properties:
+  - type: MCPServer
+    url: mcp/sambazon-mcp.yml
+  - type: Documentation
+    url: https://www.sambazon.com/agents.md
+  - type: Authentication
+    url: authentication/sambazon-authentication.yml
+  - type: OAuthScopes
+    url: scopes/sambazon-scopes.yml
+  - type: ErrorCatalog
+    url: errors/sambazon-problem-types.yml
+  - type: Conventions
+    url: conventions/sambazon-conventions.yml
+- name: SAMBAZON Storefront Product JSON
+  description: 'Read-only, unauthenticated Shopify storefront JSON endpoints published
+    on the SAMBAZON store host and named in its own agents.md/llms.txt: /products.json,
+    /products/{handle}.json, /collections/{handle}/products.json and /search/suggest.json.
+    These return the live product catalog — titles, handles, descriptions, variants,
+    prices and images — with no credentials required, and are the surface agents use
+    for browsing when they are not transacting.'
+  humanURL: https://www.sambazon.com/llms.txt
+  baseURL: https://www.sambazon.com
+  tags:
+  - Ecommerce
+  - Product Catalog
+  - Shopify
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
 common:
+- type: DomainSecurity
+  url: security/sambazon-domain-security.yml
 - type: Website
+  url: https://www.sambazon.com/
+- type: Documentation
+  url: https://www.sambazon.com/agents.md
+- type: LLMsTxt
+  url: llms/sambazon-llms.txt
+- type: AgentSkill
+  url: skills/_index.yml
+- type: MCPServer
+  url: mcp/sambazon-mcp.yml
+- type: WellKnown
+  url: well-known/sambazon-well-known.yml
+- type: Authentication
+  url: authentication/sambazon-authentication.yml
+- type: OAuthScopes
+  url: scopes/sambazon-scopes.yml
+- type: Conventions
+  url: conventions/sambazon-conventions.yml
+- type: ErrorCatalog
+  url: errors/sambazon-problem-types.yml
+- type: Conformance
+  url: conformance/sambazon-conformance.yml
+- type: Lifecycle
+  url: lifecycle/sambazon-lifecycle.yml
+- type: Blog
+  url: https://www.sambazon.com/pages/blog
+- type: Support
+  url: https://help.sambazon.com/hc/en-us/requests/new
+- type: SignUp
+  url: https://www.sambazon.com/account/login
+- type: TermsOfService
+  url: https://www.sambazon.com/policies/terms-of-service
+- type: PrivacyPolicy
+  url: https://www.sambazon.com/policies/privacy-policy
+- type: SecondaryMarket
   url: https://forgeglobal.com/sambazon_stock/
+x-enrichment:
+  date: '2026-08-05'
+  status: enriched
+  artifacts_added: 16
+  pass: local-v1
+x-coverage:
+  state: covered
+  reason: agent-surface-published
+  detail: >-
+    The Shopify-hosted store publishes a real agentic-commerce surface on its own
+    origin — llms.txt, agents.md, a UCP merchant profile and a live UCP/MCP
+    endpoint — all captured verbatim; only the MCP tool input schemas are gated
+    behind a UCP agent profile.
+  evidence:
+    - url: https://www.sambazon.com/.well-known/ucp
+      status: 200
+    - url: https://www.sambazon.com/api/ucp/mcp
+      status: 422
+  checked: '2026-08-05'

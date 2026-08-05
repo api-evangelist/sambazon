@@ -1,0 +1,136 @@
+generated: '2026-08-05'
+method: probed
+source: >-
+  https://www.sambazon.com/.well-known/ucp (merchant profile),
+  https://www.sambazon.com/agents.md and https://www.sambazon.com/llms.txt
+  (published tool list and flow), plus a live POST to
+  https://www.sambazon.com/api/ucp/mcp
+name: SAMBAZON Storefront UCP/MCP Server
+status: live-gated
+kind: hosted-remote
+endpoint: https://www.sambazon.com/api/ucp/mcp
+alternate_endpoint: https://sambazon-us.myshopify.com/api/ucp/mcp
+transport: mcp
+protocol:
+  name: Universal Commerce Protocol
+  spec: https://ucp.dev/2026-04-08/specification/overview/
+  version: '2026-04-08'
+  supported_versions:
+    - '2026-04-08'
+    - '2026-01-23'
+  service: dev.ucp.shopping
+  schema: https://ucp.dev/2026-04-08/services/shopping/mcp.openrpc.json
+platform:
+  provider: Shopify
+  note: >-
+    This MCP surface is provided by the Shopify commerce platform on the
+    merchant's own origin, not authored by SAMBAZON. It is nonetheless served
+    from www.sambazon.com and describes SAMBAZON's own catalog, cart and
+    checkout, so it is a real public agent surface for this provider. Shopify's
+    platform documentation for it is at
+    https://shopify.dev/docs/agents/catalog/storefront-catalog.
+introspection:
+  attempted: true
+  method: 'POST {"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+  headers:
+    Accept: application/json, text/event-stream
+    Content-Type: application/json
+  http_status: 422
+  result: gated
+  response: >-
+    {"jsonrpc":"2.0","id":1,"error":{"code":-32001,"message":"UCP discovery
+    failed","data":{"code":"invalid_profile_url","content":"Unable to fetch
+    agent profile: Missing profile
+    uri","continue_url":"https://sambazon-us.myshopify.com/"}}}
+  note: >-
+    Anonymous tools/list is refused. The server requires the calling agent to
+    present a resolvable UCP agent profile URI before it will enumerate tools,
+    so the live inputSchema for each tool could not be captured. The same error
+    is returned for `initialize`, for the myshopify.com origin, and for four
+    header spellings of an agent-profile header. The tool NAMES below are taken
+    verbatim from the store's own agents.md / llms.txt; their input schemas are
+    defined by the UCP shopping OpenRPC document referenced above and would need
+    an authenticated/registered introspection to confirm per-store.
+tools:
+  - name: search_catalog
+    category: catalog
+    description: >-
+      Find products in the store matching a buyer's intent. Backed by the
+      dev.ucp.shopping.catalog.search capability (extended by
+      dev.shopify.catalog).
+    schema: https://ucp.dev/2026-04-08/schemas/shopping/catalog_search.json
+    input_schema: not-captured (gated introspection)
+  - name: create_cart
+    category: cart
+    description: Create a cart and add the desired items to it.
+    schema: https://ucp.dev/2026-04-08/schemas/shopping/cart.json
+    input_schema: not-captured (gated introspection)
+  - name: create_checkout
+    category: checkout
+    description: Start the purchase flow from a cart.
+    schema: https://ucp.dev/2026-04-08/schemas/shopping/checkout.json
+    input_schema: not-captured (gated introspection)
+  - name: update_checkout
+    category: checkout
+    description: Set the shipping address and shipping method on a checkout.
+    schema: https://ucp.dev/2026-04-08/schemas/shopping/fulfillment.json
+    input_schema: not-captured (gated introspection)
+  - name: complete_checkout
+    category: checkout
+    description: >-
+      Finalize the purchase. The store's own robots.txt, agents.md and llms.txt
+      all state that the buyer must give explicit, contemporaneous approval —
+      agents must not complete payment autonomously.
+    schema: https://ucp.dev/2026-04-08/schemas/shopping/checkout.json
+    input_schema: not-captured (gated introspection)
+capabilities_advertised:
+  - dev.ucp.shopping.catalog.search
+  - dev.ucp.shopping.catalog.lookup
+  - dev.ucp.shopping.cart
+  - dev.ucp.shopping.checkout
+  - dev.ucp.shopping.fulfillment
+  - dev.ucp.shopping.discount
+  - dev.ucp.shopping.order
+  - dev.shopify.catalog
+payment_handlers:
+  - id: gpay
+    handler: com.google.pay
+    version: '2026-01-11'
+    merchant_name: SAMBAZON
+    card_networks: [VISA, MASTERCARD, AMEX, DISCOVER]
+  - id: shopify.card
+    handler: dev.shopify.card
+    version: '2026-01-15'
+fulfillment_config:
+  allows_multi_destination_shipping: false
+  allows_method_combinations:
+    - [shipping]
+human_in_the_loop:
+  required_for: [complete_checkout, payment]
+  statement: >-
+    "Checkouts are for humans. Do NOT complete checkout, payment, or order
+    placement automatically — no scripted form fills, browser automation, or
+    end-to-end agent flows that finalize payment without an explicit,
+    contemporaneous human approval step." (robots.txt, www.sambazon.com)
+alternative_agent_path:
+  name: Shop skill
+  url: https://shop.app/SKILL.md
+  note: >-
+    The store's llms.txt recommends personal shopping agents install the
+    Shopify Shop skill and transact via Shop Pay rather than scripting the
+    storefront. This is a Shopify-wide surface, not SAMBAZON-specific.
+x-evidence:
+  fetched: '2026-08-05'
+  probes:
+    - url: https://www.sambazon.com/.well-known/ucp
+      http_status: 200
+      content_type: application/json
+    - url: https://www.sambazon.com/api/ucp/mcp
+      method: POST
+      http_status: 422
+      content_type: application/json
+    - url: https://sambazon-us.myshopify.com/api/ucp/mcp
+      method: POST
+      http_status: 422
+      content_type: application/json
+      note: Same JSON-RPC -32001 invalid_profile_url error as the primary origin.

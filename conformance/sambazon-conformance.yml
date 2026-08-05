@@ -1,0 +1,139 @@
+generated: '2026-08-05'
+method: probed
+source: >-
+  Live probes of www.sambazon.com on 2026-08-05 — /.well-known/ucp,
+  /.well-known/openid-configuration, /.well-known/oauth-protected-resource,
+  /api/ucp/mcp, /llms.txt, /agents.md, /robots.txt, /sitemap.xml
+description: >-
+  Cross-cutting standards this provider's public surface does and does not
+  conform to. SAMBAZON makes no compliance or certification claims of its own
+  for this surface — every standard below is one the Shopify platform
+  implements on the merchant's origin, verified by fetching the artifact rather
+  than by taking a claim at face value. No SOC 2 / ISO 27001 / PCI DSS / HIPAA
+  attestation is published by SAMBAZON, so no Compliance pointer is wired.
+standards:
+  - id: ucp
+    name: Universal Commerce Protocol
+    version: '2026-04-08'
+    conforms: true
+    evidence: >-
+      https://www.sambazon.com/.well-known/ucp returns 200 application/json
+      with a well-formed UCP merchant profile — ucp.version 2026-04-08,
+      supported_versions, services.dev.ucp.shopping with an mcp transport and
+      endpoint, seven capabilities plus the dev.shopify.catalog extension, and
+      two payment_handlers.
+    spec: https://ucp.dev/2026-04-08/specification/overview/
+  - id: mcp
+    name: Model Context Protocol
+    conforms: partial
+    evidence: >-
+      https://www.sambazon.com/api/ucp/mcp is a live MCP transport endpoint
+      declared in the UCP profile and answers JSON-RPC. It refuses anonymous
+      tools/list and initialize with -32001, so full MCP handshake conformance
+      could not be verified without a registered UCP agent profile.
+  - id: jsonrpc-2.0
+    name: JSON-RPC 2.0
+    conforms: true
+    evidence: >-
+      The MCP endpoint returns a spec-shaped JSON-RPC 2.0 error object —
+      {"jsonrpc":"2.0","id":1,"error":{"code":-32001,...}} — echoing the request
+      id and using an implementation-defined code in the reserved server-error
+      range.
+  - id: oidc
+    name: OpenID Connect Discovery 1.0
+    conforms: true
+    evidence: >-
+      https://www.sambazon.com/.well-known/openid-configuration returns 200 with
+      issuer, authorization_endpoint, token_endpoint, jwks_uri,
+      response_types_supported, subject_types_supported and
+      id_token_signing_alg_values_supported — all required fields present.
+  - id: oauth2
+    name: OAuth 2.0 Authorization Server Metadata (RFC 8414)
+    conforms: true
+    evidence: >-
+      https://www.sambazon.com/.well-known/oauth-authorization-server returns
+      200 with the same metadata document.
+  - id: rfc9728
+    name: OAuth 2.0 Protected Resource Metadata (RFC 9728)
+    conforms: true
+    evidence: >-
+      https://www.sambazon.com/.well-known/oauth-protected-resource returns 200
+      with resource, authorization_servers and bearer_methods_supported.
+  - id: rfc7636
+    name: PKCE (RFC 7636)
+    conforms: true
+    evidence: code_challenge_methods_supported is ["S256"] in the OIDC metadata.
+  - id: llmstxt
+    name: llms.txt
+    conforms: true
+    evidence: >-
+      https://www.sambazon.com/llms.txt returns 200 text/markdown, 4373 bytes,
+      with real store-specific content. A control probe of a nonsense path on
+      the same origin returned 404, so this is not a soft-404.
+  - id: agents-md
+    name: AGENTS.md agent instructions
+    conforms: true
+    evidence: >-
+      https://www.sambazon.com/agents.md returns 200 text/markdown, and the
+      store publishes a dedicated sitemap_agentic_discovery.xml whose only entry
+      is that file.
+  - id: sitemaps
+    name: Sitemaps 0.9
+    conforms: true
+    evidence: >-
+      https://www.sambazon.com/sitemap.xml returns a valid sitemapindex with six
+      child sitemaps (agentic discovery, products, pages, collections, blogs,
+      metaobject pages).
+  - id: rfc9309
+    name: Robots Exclusion Protocol
+    conforms: true
+    evidence: >-
+      https://www.sambazon.com/robots.txt returns 200 with User-agent/Allow/
+      Disallow directives, plus an explicit agent-conduct policy in comments.
+  - id: hsts
+    name: HTTP Strict Transport Security (RFC 6797)
+    conforms: true
+    evidence: 'strict-transport-security: max-age=7889238 observed on responses.'
+  - id: rfc9116
+    name: security.txt
+    conforms: false
+    evidence: >-
+      https://www.sambazon.com/.well-known/security.txt returns 404 — no
+      machine-readable security contact or disclosure policy is published.
+  - id: openapi
+    name: OpenAPI
+    conforms: false
+    evidence: >-
+      No OpenAPI is published for this origin. /openapi.json, /swagger.json
+      (404, zero-byte JSON), /openapi.yaml and /api-docs (404, HTML) were all
+      probed. The UCP shopping OpenRPC 1.3.2 document referenced by the merchant
+      profile lives at ucp.dev and describes the protocol, not this store.
+  - id: a2a
+    name: A2A Agent Card
+    conforms: false
+    evidence: >-
+      Both /.well-known/agent-card.json and /.well-known/agent.json return 404
+      with the store's HTML 404 page.
+  - id: asyncapi
+    name: AsyncAPI
+    conforms: false
+    evidence: >-
+      No public event, streaming or webhook surface is published on this origin.
+      Shopify webhooks are an app-developer surface on the platform, not
+      something this merchant publishes.
+  - id: rfc9457
+    name: Problem Details for HTTP APIs
+    conforms: false
+    evidence: >-
+      Errors use the JSON-RPC 2.0 error object; no application/problem+json was
+      returned by any probed path.
+  - id: pci-dss
+    name: PCI DSS
+    conforms: unknown
+    evidence: >-
+      Card data never touches SAMBAZON — the UCP profile delegates payment to
+      com.google.pay (tokenization gateway "shopify") and dev.shopify.card. No
+      attestation is published by SAMBAZON for this surface.
+compliance_claims_published: none
+x-evidence:
+  fetched: '2026-08-05'

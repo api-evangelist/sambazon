@@ -1,0 +1,98 @@
+generated: '2026-08-05'
+method: probed
+source: >-
+  https://www.sambazon.com/.well-known/openid-configuration,
+  https://www.sambazon.com/.well-known/oauth-protected-resource,
+  https://www.sambazon.com/.well-known/ucp,
+  https://www.sambazon.com/agents.md
+description: >-
+  SAMBAZON has no developer program and issues no API keys. Authentication on
+  its public surface comes from two places: (1) nothing at all — the read-only
+  Shopify storefront JSON endpoints and the discovery documents are
+  unauthenticated; and (2) the Shopify customer-account OpenID Connect provider,
+  whose metadata this origin publishes and whose authorization server is
+  Shopify's, not SAMBAZON's. The UCP/MCP endpoint is a third case: it is not
+  key- or token-gated but PROFILE-gated — it requires the calling agent to
+  present a resolvable UCP agent profile URI before it will do anything.
+schemes:
+  - id: none
+    type: none
+    applies_to:
+      - https://www.sambazon.com/products.json
+      - https://www.sambazon.com/products/{handle}.json
+      - https://www.sambazon.com/collections/{handle}/products.json
+      - https://www.sambazon.com/search/suggest.json
+      - https://www.sambazon.com/.well-known/ucp
+      - https://www.sambazon.com/llms.txt
+      - https://www.sambazon.com/agents.md
+    description: >-
+      Read-only browsing requires no authentication. The store's own llms.txt
+      documents these under the heading "Read-Only Browsing (No Authentication
+      Required)". Verified with anonymous GETs returning 200 application/json.
+  - id: ucp_agent_profile
+    type: agent-identity
+    applies_to:
+      - https://www.sambazon.com/api/ucp/mcp
+    description: >-
+      The UCP/MCP endpoint rejects anonymous JSON-RPC with error -32001
+      "UCP discovery failed" / data.code "invalid_profile_url" / "Missing
+      profile uri". This is an agent-identity gate defined by the Universal
+      Commerce Protocol rather than a conventional API credential — the caller
+      must be a registered agent with a fetchable profile. The store publishes
+      no instructions for obtaining one; agents.md simply says to call
+      tools/list.
+    spec: https://ucp.dev/2026-04-08/specification/overview/
+    observed_http_status: 422
+  - id: shopify_customer_account_oidc
+    type: openIdConnect
+    openIdConnectUrl: https://www.sambazon.com/.well-known/openid-configuration
+    issuer: https://shopify.com/authentication/52008485056
+    authorization_endpoint: https://shopify.com/authentication/52008485056/oauth/authorize
+    token_endpoint: https://shopify.com/authentication/52008485056/oauth/token
+    end_session_endpoint: https://shopify.com/authentication/52008485056/logout
+    jwks_uri: https://shopify.com/authentication/52008485056/.well-known/jwks.json
+    grant_types_supported:
+      - authorization_code
+      - refresh_token
+      - urn:ietf:params:oauth:grant-type:jwt-bearer
+    response_types_supported: [code]
+    token_endpoint_auth_methods_supported: [client_secret_basic]
+    code_challenge_methods_supported: [S256]
+    id_token_signing_alg_values_supported: [RS256]
+    subject_types_supported: [public]
+    claims_supported: [iss, sub, aud, exp, iat, nonce, sid, email, email_verified]
+    scopes: ../scopes/sambazon-scopes.yml
+    description: >-
+      Shopify's customer-account identity provider, discoverable from this
+      origin. Governs shopper login on www.sambazon.com/account/login and the
+      customer-account API/MCP scopes. The authorization server and the login
+      UI are Shopify's; SAMBAZON operates neither.
+protected_resource:
+  spec: RFC 9728
+  document: https://www.sambazon.com/.well-known/oauth-protected-resource
+  resource: https://www.sambazon.com
+  authorization_servers:
+    - https://shopify.com/authentication/52008485056
+  bearer_methods_supported: [header]
+not_present:
+  - No API key issuance, developer portal, or credential self-service.
+  - No mutualTLS, no HTTP basic, no signed-request scheme documented.
+  - No /.well-known/security.txt (404), so no machine-readable security contact.
+x-evidence:
+  fetched: '2026-08-05'
+  probes:
+    - url: https://www.sambazon.com/.well-known/openid-configuration
+      http_status: 200
+      content_type: application/json; charset=utf-8
+    - url: https://www.sambazon.com/.well-known/oauth-authorization-server
+      http_status: 200
+      content_type: application/json; charset=utf-8
+    - url: https://www.sambazon.com/.well-known/oauth-protected-resource
+      http_status: 200
+      content_type: application/json; charset=utf-8
+    - url: https://www.sambazon.com/api/ucp/mcp
+      http_status: 422
+      content_type: application/json; charset=utf-8
+    - url: https://www.sambazon.com/products.json?limit=1
+      http_status: 200
+      content_type: application/json; charset=utf-8

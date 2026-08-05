@@ -1,0 +1,98 @@
+generated: '2026-08-05'
+method: searched
+description: >-
+  Results of probing the /.well-known/ discovery surface on the SAMBAZON store
+  host (www.sambazon.com), which is also the baseURL host for both APIs in
+  apis.yml. Status is the HTTP code observed at fetch time. The store is
+  Shopify-hosted, so the discovery documents that answered are the ones Shopify
+  publishes on the merchant's own origin: the Universal Commerce Protocol
+  merchant profile, and the Shopify customer-account OpenID Connect / OAuth
+  metadata. Every other /.well-known/ path answers 404 with the store's HTML
+  404 page — those are recorded as absent and were NOT saved. A control probe
+  of a nonsense path (/definitely-not-a-real-path-xyz123.txt) returned 404 with
+  a zero-byte body, confirming this origin does not soft-404 with a 200, so the
+  200s below are real documents rather than SPA catch-alls.
+hosts:
+  - host: https://www.sambazon.com
+    documents:
+      - path: /.well-known/ucp
+        status: 200
+        type: application/json
+        file: sambazon-ucp.json
+        note: >-
+          Universal Commerce Protocol merchant profile. Declares UCP version
+          2026-04-08 (with 2026-01-23 also supported), the dev.ucp.shopping
+          service over transport "mcp" at
+          https://sambazon-us.myshopify.com/api/ucp/mcp, an "embedded"
+          transport, capabilities for checkout / fulfillment / discount / cart
+          / order / catalog.search / catalog.lookup plus the Shopify
+          dev.shopify.catalog extension, and payment handlers com.google.pay
+          and dev.shopify.card.
+      - path: /.well-known/openid-configuration
+        status: 200
+        type: application/json
+        file: sambazon-openid-configuration.json
+        note: >-
+          Shopify customer-account OIDC discovery. issuer
+          https://shopify.com/authentication/52008485056, authorization_code +
+          refresh_token + jwt-bearer grants, PKCE S256, RS256 id tokens.
+      - path: /.well-known/oauth-authorization-server
+        status: 200
+        type: application/json
+        file: sambazon-oauth-authorization-server.json
+        note: Byte-identical to the openid-configuration document (RFC 8414 alias).
+      - path: /.well-known/oauth-protected-resource
+        status: 200
+        type: application/json
+        file: sambazon-oauth-protected-resource.json
+        note: >-
+          RFC 9728 protected-resource metadata. resource
+          https://www.sambazon.com, authorization_servers
+          [https://shopify.com/authentication/52008485056],
+          bearer_methods_supported [header].
+      - path: /.well-known/security.txt
+        status: 404
+      - path: /.well-known/api-catalog
+        status: 404
+      - path: /.well-known/ai-plugin.json
+        status: 404
+      - path: /.well-known/agent-card.json
+        status: 404
+      - path: /.well-known/agent.json
+        status: 404
+      - path: /.well-known/mcp.json
+        status: 404
+non_well_known_discovery:
+  - path: /llms.txt
+    status: 200
+    type: text/markdown
+    file: ../llms/sambazon-llms.txt
+  - path: /agents.md
+    status: 200
+    type: text/markdown
+    file: ../skills/sambazon-agents.md
+  - path: /robots.txt
+    status: 200
+    type: text/plain
+    file: sambazon-robots.txt
+    note: >-
+      robots.txt itself carries agent policy in comments — it names agents.md,
+      the UCP discovery document and the UCP/MCP endpoint, and states that
+      checkout/payment must not be completed by an agent without a
+      contemporaneous human approval step.
+  - path: /sitemap.xml
+    status: 200
+    type: application/xml
+    note: >-
+      Sitemap index includes a dedicated sitemap_agentic_discovery.xml whose
+      single entry is https://www.sambazon.com/agents.md.
+absent:
+  - security.txt (RFC 9116) is not published on this host — no vulnerability
+    disclosure contact or policy is machine-discoverable.
+  - No A2A Agent Card at either the 0.3+ or the pre-0.3 well-known path.
+x-evidence:
+  fetched: '2026-08-05'
+  control_probe:
+    url: https://www.sambazon.com/definitely-not-a-real-path-xyz123.txt
+    http_status: 404
+    size_bytes: 0

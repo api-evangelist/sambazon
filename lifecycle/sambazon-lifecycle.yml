@@ -1,0 +1,86 @@
+generated: '2026-08-05'
+method: probed
+source: >-
+  https://www.sambazon.com/.well-known/ucp, https://www.sambazon.com/llms.txt,
+  https://www.sambazon.com/agents.md, plus host probes of
+  status.sambazon.com and trust.sambazon.com
+description: >-
+  SAMBAZON operates no API program, so it publishes no versioning policy,
+  deprecation policy, SLA, changelog or status page of its own. The only
+  lifecycle signal on its surface is protocol-level: the Universal Commerce
+  Protocol version its merchant profile advertises, and the older version it
+  still accepts. That is recorded here honestly as inherited from the platform.
+versioning:
+  scheme: dated protocol versions (Universal Commerce Protocol)
+  owned_by: ucp.dev / Shopify — not SAMBAZON
+  current: '2026-04-08'
+  label: latest stable
+  supported:
+    - version: '2026-04-08'
+      profile: https://sambazon-us.myshopify.com/.well-known/ucp/2026-04-08
+    - version: '2026-01-23'
+      profile: https://sambazon-us.myshopify.com/.well-known/ucp/2026-01-23
+  minimums:
+    - capability: dev.ucp.shopping.fulfillment
+      requires_protocol_min: '2026-04-08'
+    - capability: dev.ucp.shopping.discount
+      requires_protocol_min: '2026-04-08'
+    - capability: dev.shopify.catalog
+      requires_protocol_min: '2026-04-08'
+  in_url: false
+  in_header: false
+  negotiation: >-
+    Via the supported_versions map in /.well-known/ucp. Two versions are live
+    simultaneously, which is itself the only observable backward-compatibility
+    commitment on this surface.
+deprecation:
+  policy_published: false
+  sunset_header: not-observed
+  deprecation_header: not-observed
+  rfc8594: false
+  note: >-
+    No deprecation or sunset policy is published. The presence of the older
+    2026-01-23 profile alongside 2026-04-08 shows overlapping support, but no
+    stated window, notice period, or removal date. Because there is no policy,
+    no `Deprecation` pointer is wired in apis.yml.
+status_page:
+  published: false
+  probes:
+    - url: https://status.sambazon.com/
+      result: DNS/connection failure (curl exit, no HTTP response)
+    - url: https://www.sambazon.com/apps/status
+      http_status: 404
+  note: >-
+    No status page exists for this store. Availability of the underlying
+    platform is reported by Shopify at https://www.shopifystatus.com/, which
+    SAMBAZON neither operates nor links to. No `StatusPage` pointer is wired.
+sla:
+  published: false
+  note: No SLA, uptime target, or support-response commitment for the API surface.
+changelog:
+  published: false
+  note: >-
+    No dated changelog for the agent surface. The store's blog
+    (https://www.sambazon.com/pages/blog and the sustainability / recipes /
+    nutrition / lifestyle / tutorials blogs) is consumer content, not release
+    notes. No `ChangeLog` pointer is wired.
+support:
+  channel: https://help.sambazon.com/hc/en-us/requests/new
+  type: consumer help center (Zendesk)
+  note: >-
+    Consumer support only — there is no developer support channel, forum, or
+    contact for the agent surface. The help host returned 403 to an automated
+    request (bot filtering); it is reachable in a browser and is the contact
+    route linked from the store footer.
+deprecated_operations: []
+x-evidence:
+  fetched: '2026-08-05'
+  probes:
+    - url: https://www.sambazon.com/.well-known/ucp
+      http_status: 200
+    - url: https://status.sambazon.com/
+      http_status: 0
+    - url: https://www.sambazon.com/apps/status
+      http_status: 404
+    - url: https://help.sambazon.com/hc/en-us
+      http_status: 403
