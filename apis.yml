@@ -22,6 +22,17 @@ tags:
 - Company
 - Food and Beverage
 - Consumer Packaged Goods
+- E-Commerce
+- Agentic Commerce
+- Universal Commerce Protocol
+- MCP
+- Shopify
+- Retail
+- Sustainability
+tags_raw:
+- Company
+- Food and Beverage
+- Consumer Packaged Goods
 - Ecommerce
 - Agentic Commerce
 - Universal Commerce Protocol
@@ -42,6 +53,11 @@ apis:
   humanURL: https://www.sambazon.com/agents.md
   baseURL: https://www.sambazon.com/api/ucp/mcp
   tags:
+  - Agentic Commerce
+  - Universal Commerce Protocol
+  - MCP
+  - E-Commerce
+  tags_raw:
   - Agentic Commerce
   - Universal Commerce Protocol
   - Model Context Protocol
@@ -69,6 +85,10 @@ apis:
   humanURL: https://www.sambazon.com/llms.txt
   baseURL: https://www.sambazon.com
   tags:
+  - E-Commerce
+  - Product Catalog
+  - Shopify
+  tags_raw:
   - Ecommerce
   - Product Catalog
   - Shopify
