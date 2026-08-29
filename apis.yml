@@ -10,6 +10,17 @@ description: 'SAMBAZON (Sustainable Management of the Brazilian Amazon) is a San
   at /.well-known/ucp, a UCP/MCP JSON-RPC endpoint at /api/ucp/mcp, Shopify customer-account
   OpenID Connect metadata, and read-only storefront product/collection JSON endpoints.'
 url: https://raw.githubusercontent.com/api-evangelist/sambazon/refs/heads/main/apis.yml
+deliveryModel:
+  model: saas
+  open_source: false
+  commercial: true
+  callable_host: false
+  label: Hosted service · you call their endpoint
+  confidence: medium
+  source:
+  - pricing
+  generated: '2026-08-28'
+  method: derived
 image: https://www.sambazon.com/cdn/shop/files/EnjoyTheDelicousPowersOfAcai_DefaultMetaImageV2.jpg?v=1738620841&width=1000
 x-type: company
 x-source: harvest:secondary-market
