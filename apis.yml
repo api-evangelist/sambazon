@@ -101,6 +101,9 @@ apis:
     url: errors/sambazon-problem-types.yml
   - type: Conventions
     url: conventions/sambazon-conventions.yml
+  x-surface: platform-generated
+  x-platform: shopify
+  x-platform-surface: ucp
 - name: SAMBAZON Storefront Product JSON
   description: 'Read-only, unauthenticated Shopify storefront JSON endpoints published
     on the SAMBAZON store host and named in its own agents.md/llms.txt: /products.json,
@@ -109,7 +112,6 @@ apis:
     prices and images — with no credentials required, and are the surface agents use
     for browsing when they are not transacting.'
   humanURL: https://www.sambazon.com/llms.txt
-  baseURL: https://www.sambazon.com
   tags:
   - E-Commerce
   - Product Catalog
@@ -118,6 +120,9 @@ apis:
   - Ecommerce
   - Product Catalog
   - Shopify
+  x-surface: platform-generated
+  x-platform: shopify
+  x-platform-surface: storefront-json
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
