@@ -1,0 +1,16 @@
+generated: '2026-10-12'
+method: none
+source:
+- https://zapier.com/apps/sambazon/integrations
+- https://n8n.io/integrations/sambazon/
+- https://composio.dev/toolkits/sambazon
+- https://monid.ai/tools/sambazon
+checked:
+- https://composio.dev/toolkits/sambazon
+- https://monid.ai/tools/sambazon
+- https://n8n.io/integrations/sambazon/
+- https://zapier.com/apps/sambazon/integrations
+summary: null
+marketplace_apps: []
+edges: []
+templates: []
